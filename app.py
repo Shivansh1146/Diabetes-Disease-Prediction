@@ -73,7 +73,7 @@ class User(UserMixin, db.Model):
     email         = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin      = db.Column(db.Boolean, default=False)
-    created_at    = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at    = db.Column(db.DateTime, default=datetime.datetime.now)
     predictions   = db.relationship('Prediction', backref='user', lazy=True,
                                     cascade='all, delete-orphan')
 
@@ -100,7 +100,7 @@ class Prediction(db.Model):
     risk_percentage           = db.Column(db.Float)
     confidence_score          = db.Column(db.Float)
     risk_level                = db.Column(db.String(30))
-    timestamp                 = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    timestamp                 = db.Column(db.DateTime, default=datetime.datetime.now)
 
 
 @login_manager.user_loader
@@ -232,7 +232,7 @@ def dashboard():
 
 def _monthly_chart_data(user_id=None):
     """Return last 6 months labels + diabetic/non-diabetic counts."""
-    today = datetime.datetime.utcnow()
+    today = datetime.datetime.now()
     labels, diabetic_counts, non_diabetic_counts = [], [], []
 
     for i in range(5, -1, -1):
@@ -527,11 +527,13 @@ def info():
 
 
 @app.route('/about')
+@login_required
 def about():
     return render_template('about.html')
 
 
 @app.route('/contact')
+@login_required
 def contact():
     return render_template('contact.html')
 
