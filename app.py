@@ -560,18 +560,22 @@ def server_error(e):
 
 
 # ═══════════════════════════════════════════════════
+# Initialization for Gunicorn & Local
+# ═══════════════════════════════════════════════════
+with app.app_context():
+    db.create_all()
+    # Create default admin if no users exist
+    if User.query.count() == 0:
+        admin_user = User(username='admin', email='admin@diabetes.com', is_admin=True)
+        admin_user.set_password('admin123')
+        db.session.add(admin_user)
+        db.session.commit()
+        print("[OK]  Default admin created  ->  username: admin  |  password: admin123")
+
+load_model()
+
+# ═══════════════════════════════════════════════════
 # Entry Point
 # ═══════════════════════════════════════════════════
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Create default admin if no users exist
-        if User.query.count() == 0:
-            admin_user = User(username='admin', email='admin@diabetes.com', is_admin=True)
-            admin_user.set_password('admin123')
-            db.session.add(admin_user)
-            db.session.commit()
-            print("[OK]  Default admin created  →  username: admin  |  password: admin123")
-
-    load_model()
     app.run(debug=True, host='0.0.0.0', port=5000)
