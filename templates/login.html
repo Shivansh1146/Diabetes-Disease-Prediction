@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Login – Diabetes Prediction System</title>
+  <meta name="description" content="Sign in to the Diabetes Disease Prediction System"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card fade-in-up">
+    <div class="auth-logo">
+      <div class="logo-icon">🩺</div>
+      <h2>Diabetes Prediction</h2>
+      <p>AI-Powered Early Detection System</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash-alert alert alert-{{ cat }}">
+          <i class="fas fa-circle-info"></i> {{ msg }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username"><i class="fas fa-user me-2"></i>Username</label>
+        <input id="username" name="username" type="text" class="form-control-custom"
+               placeholder="Enter your username" required autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password"><i class="fas fa-lock me-2"></i>Password</label>
+        <div style="position:relative">
+          <input id="password" name="password" type="password" class="form-control-custom"
+                 placeholder="Enter your password" required autocomplete="current-password"/>
+          <button type="button" onclick="togglePwd()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);cursor:pointer;">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" name="remember" style="accent-color:var(--primary)"/> Remember me
+        </label>
+      </div>
+      <button type="submit" class="btn-primary-custom">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-secondary)">
+      Don't have an account?
+      <a href="{{ url_for('register') }}" style="color:var(--primary-light);font-weight:600;text-decoration:none"> Register</a>
+    </p>
+
+    <div style="margin-top:20px;padding:14px;background:var(--glass);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--text-secondary)">
+      <strong style="color:var(--primary-light)">Demo credentials:</strong><br/>
+      Admin: <code>admin</code> / <code>admin123</code>
+    </div>
+  </div>
+</div>
+<script>
+function togglePwd(){
+  const p=document.getElementById('password');
+  const i=document.getElementById('eyeIcon');
+  if(p.type==='password'){p.type='text';i.className='fas fa-eye-slash';}
+  else{p.type='password';i.className='fas fa-eye';}
+}
+</script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

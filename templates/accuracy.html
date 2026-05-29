@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Model Accuracy – Diabetes Prediction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+  {% include '_sidebar.html' %}
+
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+        <div class="topbar-title">📈 Model Performance</div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+
+    <div class="page-content">
+      {% if metrics %}
+      <div class="row g-4">
+        
+        <!-- Radar Chart -->
+        <div class="col-lg-6 fade-in-up delay-1">
+          <div class="card-glass" style="height:100%">
+            <h5 style="font-weight:700;margin-bottom:20px">Overall Metrics: {{ metrics.model_name }}</h5>
+            <div style="height:350px"><canvas id="modelChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Confusion Matrix -->
+        <div class="col-lg-6 fade-in-up delay-2">
+          <div class="card-glass" style="height:100%">
+            <h5 style="font-weight:700;margin-bottom:20px">Confusion Matrix</h5>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:350px;gap:20px">
+              
+              <div style="display:flex;gap:20px">
+                <div class="cm-cell" style="background:rgba(16,185,129,0.15);border:1px solid #10b981">
+                  <div class="cm-val text-success">{{ metrics.tn }}</div>
+                  <div class="cm-lbl">True Neg.</div>
+                </div>
+                <div class="cm-cell" style="background:rgba(239,68,68,0.15);border:1px solid #ef4444">
+                  <div class="cm-val text-danger">{{ metrics.fp }}</div>
+                  <div class="cm-lbl">False Pos.</div>
+                </div>
+              </div>
+              
+              <div style="display:flex;gap:20px">
+                <div class="cm-cell" style="background:rgba(245,158,11,0.15);border:1px solid #f59e0b">
+                  <div class="cm-val text-warning">{{ metrics.fn }}</div>
+                  <div class="cm-lbl">False Neg.</div>
+                </div>
+                <div class="cm-cell" style="background:rgba(79,70,229,0.15);border:1px solid #4f46e5">
+                  <div class="cm-val text-primary">{{ metrics.tp }}</div>
+                  <div class="cm-lbl">True Pos.</div>
+                </div>
+              </div>
+
+              <div style="text-align:center;font-size:12px;color:var(--text-secondary);max-width:300px;line-height:1.6">
+                <strong>TN:</strong> Correctly predicted no diabetes. <strong>FP:</strong> Incorrectly predicted diabetes.<br>
+                <strong>FN:</strong> Incorrectly predicted no diabetes. <strong>TP:</strong> Correctly predicted diabetes.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Comparison -->
+        <div class="col-12 fade-in-up delay-3">
+          <div class="card-glass">
+            <h5 style="font-weight:700;margin-bottom:20px">Algorithm Comparison</h5>
+            <div style="overflow-x:auto">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Accuracy</th>
+                    <th>AUC-ROC</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1-Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for algo, scores in metrics.comparison.items() %}
+                  <tr style="{% if algo == metrics.model_name %}background:rgba(79,70,229,0.1);font-weight:600{% endif %}">
+                    <td>
+                      {{ algo }}
+                      {% if algo == metrics.model_name %}
+                        <span class="badge bg-primary ms-2" style="font-size:10px">Selected</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ scores.accuracy }}%</td>
+                    <td>{{ scores.auc }}</td>
+                    <td>{{ scores.precision }}</td>
+                    <td>{{ scores.recall }}</td>
+                    <td>{{ scores.f1 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="card-glass text-center" style="padding:60px 20px">
+        <i class="fas fa-robot text-danger" style="font-size:48px;margin-bottom:16px"></i>
+        <h5>Model Not Trained</h5>
+        <p class="text-secondary">Please run <code>python train_model.py</code> to generate model metrics.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+  {% if metrics %}initModelChart({{ metrics | tojson }});{% endif %}
+</script>
+</body>
+</html>
