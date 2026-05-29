@@ -63,8 +63,13 @@ def load_and_clean(path):
     # Fill missing values with median (robust to skew)
     for col in zero_cols:
         median = df[col].median()
-        df[col].fillna(median, inplace=True)
+        if pd.isna(median):
+            median = 0
+        df[col] = df[col].fillna(median)
         print(f"   Filled NaN in {col:25s} -> median = {median:.2f}")
+
+    # Explicitly drop any remaining rows with NaNs across all columns just to be completely safe
+    df = df.dropna()
 
     # Clip extreme outliers at 1st / 99th percentile
     feature_cols = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
