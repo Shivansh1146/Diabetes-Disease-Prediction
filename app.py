@@ -384,31 +384,42 @@ def delete_prediction(pred_id):
 @login_required
 def export_csv():
     if current_user.is_admin:
-        preds = Prediction.query.order_by(Prediction.timestamp.desc()).all()
+        preds = Prediction.query.options(db.joinedload(Prediction.user)).order_by(Prediction.timestamp.desc()).all()
     else:
         preds = (Prediction.query
+                 .options(db.joinedload(Prediction.user))
                  .filter_by(user_id=current_user.id)
                  .order_by(Prediction.timestamp.desc()).all())
 
-    def generate():
-        header = ['ID','Username','Pregnancies','Glucose','BloodPressure','SkinThickness',
-                  'Insulin','BMI','DiabetesPedigreeFunction','Age',
-                  'Result','RiskPercentage','ConfidenceScore','RiskLevel','Timestamp']
-        yield ','.join(header) + '\n'
-        for p in preds:
-            row = [
-                str(p.id), p.user.username,
-                str(p.pregnancies), str(p.glucose), str(p.blood_pressure),
-                str(p.skin_thickness), str(p.insulin), str(p.bmi),
-                str(p.diabetes_pedigree_function), str(p.age),
-                'Diabetic' if p.result == 1 else 'Not Diabetic',
-                str(p.risk_percentage), str(p.confidence_score),
-                str(p.risk_level), str(p.timestamp),
-            ]
-            yield ','.join(row) + '\n'
-
+    si = io.StringIO()
+    cw = csv.writer(si)
+    
+    # Write header
+    cw.writerow(['ID','Username','Pregnancies','Glucose','BloodPressure','SkinThickness',
+                 'Insulin','BMI','DiabetesPedigreeFunction','Age',
+                 'Result','RiskPercentage','ConfidenceScore','RiskLevel','Timestamp'])
+                 
+    for p in preds:
+        cw.writerow([
+            p.id, 
+            p.user.username if p.user else 'Unknown',
+            p.pregnancies, 
+            p.glucose, 
+            p.blood_pressure,
+            p.skin_thickness, 
+            p.insulin, 
+            p.bmi,
+            p.diabetes_pedigree_function, 
+            p.age,
+            'Diabetic' if p.result == 1 else 'Not Diabetic',
+            p.risk_percentage, 
+            p.confidence_score,
+            p.risk_level, 
+            p.timestamp.strftime("%Y-%m-%d %H:%M:%S") if p.timestamp else 'N/A'
+        ])
+        
     return Response(
-        generate(),
+        si.getvalue(),
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment;filename=diabetes_predictions.csv'}
     )
