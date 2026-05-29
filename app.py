@@ -63,6 +63,12 @@ def load_model():
         with open(METRICS_PATH) as f:
             metrics = json.load(f)
 
+# Helper to get IST time (naive datetime for SQLite storage)
+def get_ist_time():
+    IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+    return datetime.datetime.now(IST).replace(tzinfo=None)
+
+
 # ═══════════════════════════════════════════════════
 # Database Models
 # ═══════════════════════════════════════════════════
@@ -73,7 +79,7 @@ class User(UserMixin, db.Model):
     email         = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin      = db.Column(db.Boolean, default=False)
-    created_at    = db.Column(db.DateTime, default=datetime.datetime.now)
+    created_at    = db.Column(db.DateTime, default=get_ist_time)
     predictions   = db.relationship('Prediction', backref='user', lazy=True,
                                     cascade='all, delete-orphan')
 
@@ -100,7 +106,7 @@ class Prediction(db.Model):
     risk_percentage           = db.Column(db.Float)
     confidence_score          = db.Column(db.Float)
     risk_level                = db.Column(db.String(30))
-    timestamp                 = db.Column(db.DateTime, default=datetime.datetime.now)
+    timestamp                 = db.Column(db.DateTime, default=get_ist_time)
 
 
 @login_manager.user_loader
@@ -232,7 +238,7 @@ def dashboard():
 
 def _monthly_chart_data(user_id=None):
     """Return last 6 months labels + diabetic/non-diabetic counts."""
-    today = datetime.datetime.now()
+    today = get_ist_time()
     labels, diabetic_counts, non_diabetic_counts = [], [], []
 
     for i in range(5, -1, -1):

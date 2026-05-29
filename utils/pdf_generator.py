@@ -94,7 +94,9 @@ def generate_patient_pdf(prediction_data: dict, username: str) -> bytes:
     story.append(Spacer(1, 12))
 
     # Report meta
-    now = datetime.now().strftime("%B %d, %Y  %I:%M %p")
+    import datetime as dt
+    IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    now = dt.datetime.now(IST).strftime("%B %d, %Y  %I:%M %p")
     meta_data = [
         ["Report Generated:", now],
         ["Patient / User:", username],
