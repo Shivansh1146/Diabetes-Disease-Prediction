@@ -2,6 +2,12 @@
 
 A complete, production-ready Python Full Stack application for the early prediction of Diabetes using Machine Learning.
 
+## 🔗 Live Demo
+Access the live deployed application here:  
+👉 **[https://diabetes-prediction-ai-5u0i.onrender.com/](https://diabetes-prediction-ai-5u0i.onrender.com/)**
+
+---
+
 ## ✨ Features
 - **Secure Authentication:** User Registration, Login, and Password Hashing (Werkzeug).
 - **Machine Learning Pipeline:** Trains both Logistic Regression and Random Forest models on the real Pima Indians Diabetes Dataset, automatically selecting the best one based on AUC-ROC.
@@ -57,6 +63,14 @@ A complete, production-ready Python Full Stack application for the early predict
    *Default Admin Credentials:*
    - **Username:** `admin`
    - **Password:** `admin123`
+
+---
+
+## 🌐 Cloud Deployment (e.g., Render)
+To deploy this project to **Render** or similar platforms, use the following configuration:
+
+- **Build Command:** `pip install -r requirements.txt && python train_model.py` (Trains the ML model and sets up the clean dataset during build time)
+- **Start Command:** `gunicorn app:app` (Uses the production server environment)
 
 ## 📊 Model Evaluation
 You can view the real-time confusion matrix, accuracy, precision, recall, F1 score, and AUC on the `/accuracy` page within the application once logged in.
