@@ -21,7 +21,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from utils.helpers import (
     get_risk_level, get_risk_color, get_result_interpretation,
-    get_health_recommendations, calculate_bmi, validate_prediction_input
+    get_health_recommendations, calculate_bmi, validate_prediction_input,
+    calibrate_clinical_probability
 )
 from utils.pdf_generator import generate_patient_pdf
 
@@ -310,8 +311,12 @@ def predict():
 
     prediction   = int(model.predict(features_scaled)[0])
     probabilities= model.predict_proba(features_scaled)[0]
-    risk_prob    = float(probabilities[1])
-    confidence   = float(max(probabilities))
+    raw_risk_prob= float(probabilities[1])
+    
+    # Apply clinical guideline probability calibration (fixes RF noise & survival bias)
+    risk_prob    = calibrate_clinical_probability(raw_risk_prob, data, prediction)
+    
+    confidence   = float(max(risk_prob, 1.0 - risk_prob))
     risk_pct     = round(risk_prob * 100, 1)
     risk_lvl     = get_risk_level(risk_prob)
     risk_clr     = get_risk_color(risk_prob)

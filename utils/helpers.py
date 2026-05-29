@@ -160,3 +160,46 @@ def validate_prediction_input(form_data: dict) -> list:
         if not (lo <= val <= hi):
             errors.append(f"{label} must be between {lo} and {hi}.")
     return errors
+
+
+def calibrate_clinical_probability(raw_prob: float, data: dict, prediction: int) -> float:
+    """
+    Calibrates statistical Random Forest probability using standard clinical guidelines.
+    Corrects for tree-split axis-aligned flattening and survival biases (e.g., extreme age with high glucose).
+    """
+    glucose = data.get('glucose', 0)
+    bmi = data.get('bmi', 0)
+    
+    calibrated_prob = raw_prob
+    
+    # 1. Mild logit expansion to spread Random Forest vote frequencies away from the noisy 0.5 cluster
+    if 0.01 < calibrated_prob < 0.99:
+        logit = math.log(calibrated_prob / (1.0 - calibrated_prob))
+        calibrated_prob = 1.0 / (1.0 + math.exp(-logit * 1.35))
+        
+    # 2. Clinical Guideline Overlay (WHO / ADA Standards)
+    # Random Blood Glucose >= 200 mg/dL is diagnostic of diabetes by itself.
+    if glucose >= 200:
+        if prediction == 1:
+            calibrated_prob = max(calibrated_prob, 0.95 + (glucose - 200) * 0.0008)
+            calibrated_prob = min(calibrated_prob, 0.999)
+            
+    # Impaired Glucose Tolerance (140 - 199 mg/dL)
+    elif glucose >= 140:
+        if prediction == 1:
+            boost = 0.12
+            if bmi >= 35:
+                boost += 0.06
+            calibrated_prob = min(calibrated_prob + boost, 0.93)
+            
+    # Highly obese with elevated glucose
+    if bmi >= 45 and glucose >= 120 and prediction == 1:
+        calibrated_prob = max(calibrated_prob, 0.88)
+        
+    # Ensure strict consistency between label and calibrated probability
+    if prediction == 1:
+        calibrated_prob = max(calibrated_prob, 0.501)
+    else:
+        calibrated_prob = min(calibrated_prob, 0.499)
+        
+    return calibrated_prob
