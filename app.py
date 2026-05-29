@@ -302,12 +302,27 @@ def predict():
         'age':                       float(form['age']),
     }
 
-    features = np.array([[
-        data['pregnancies'], data['glucose'], data['blood_pressure'],
-        data['skin_thickness'], data['insulin'], data['bmi'],
-        data['diabetes_pedigree_function'], data['age']
+    # Preprocess inputs: Replace physiologically-impossible zeros with training medians (matching train_model.py)
+    # This aligns inference distribution with the training scaling parameters
+    medians = {
+        'glucose': 117.0,
+        'blood_pressure': 72.0,
+        'skin_thickness': 29.0,
+        'insulin': 125.0,
+        'bmi': 32.3
+    }
+    
+    imputed_features = np.array([[
+        data['pregnancies'],
+        medians['glucose'] if data['glucose'] == 0 else data['glucose'],
+        medians['blood_pressure'] if data['blood_pressure'] == 0 else data['blood_pressure'],
+        medians['skin_thickness'] if data['skin_thickness'] == 0 else data['skin_thickness'],
+        medians['insulin'] if data['insulin'] == 0 else data['insulin'],
+        medians['bmi'] if data['bmi'] == 0 else data['bmi'],
+        data['diabetes_pedigree_function'],
+        data['age']
     ]])
-    features_scaled = scaler.transform(features)
+    features_scaled = scaler.transform(imputed_features)
 
     prediction   = int(model.predict(features_scaled)[0])
     probabilities= model.predict_proba(features_scaled)[0]
